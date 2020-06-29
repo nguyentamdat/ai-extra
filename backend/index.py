@@ -7,7 +7,7 @@ import graph
 app = Flask(__name__)
 
 
-@app.route('/search/<path:alg>', methods=['POST'])
+@app.route('/search/<path:alg>', methods=['POST', 'GET', 'OPTIONS'])
 @crossdomain(origin='*')
 def graph_search(alg):
     if request.method == 'POST':
@@ -19,3 +19,5 @@ def graph_search(alg):
             {"iters": iters, "all_nodes_color": all_nodes_color, "path": path, "cost": cost})
         print(res)
         return res
+    else:
+        return alg
