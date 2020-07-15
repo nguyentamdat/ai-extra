@@ -106,7 +106,7 @@ class GraphSearchProblem:
         #     return int(distance(locs[node.state], locs[self.goal]))
         # else:
         #     return np.inf
-        return self.graph.h[node]
+        return self.graph.h[node.state]
 
 
 class Node:
