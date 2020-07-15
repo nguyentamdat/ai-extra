@@ -256,7 +256,7 @@ def breadth_first_search_graph(problem):
         node_colors[node.state] = "green"
         iterations += 1
         all_node_colors.append(dict(node_colors))
-        return(iterations, all_node_colors, node)
+        return(iterations, all_node_colors, node, None)
 
     frontier = deque([node])
 
@@ -280,7 +280,7 @@ def breadth_first_search_graph(problem):
                     node_colors[child.state] = "green"
                     iterations += 1
                     all_node_colors.append(dict(node_colors))
-                    return(iterations, all_node_colors, child)
+                    return(iterations, all_node_colors, child, None)
                 frontier.append(child)
 
                 node_colors[child.state] = "orange"
@@ -324,7 +324,7 @@ def graph_search_for_vis(problem):
             node_colors[node.state] = "green"
             iterations += 1
             all_node_colors.append(dict(node_colors))
-            return(iterations, all_node_colors, node)
+            return(iterations, all_node_colors, node, None)
 
         explored.add(node.state)
         frontier.extend(child for child in node.expand(problem)
@@ -348,7 +348,7 @@ def graph_search_for_vis(problem):
 def depth_first_graph_search(problem):
     """Search the deepest nodes in the search tree first."""
     iterations, all_node_colors, node = graph_search_for_vis(problem)
-    return(iterations, all_node_colors, node)
+    return(iterations, all_node_colors, node, None)
 
 
 def best_first_graph_search_for_vis(problem, f):
@@ -364,6 +364,8 @@ def best_first_graph_search_for_vis(problem, f):
     iterations = 0
     all_node_colors = []
     node_colors = {k: 'white' for k in problem.graph.nodes()}
+    all_node_f = []
+    node_f = {k: 0 for k in problem.graph.nodes()}
 
     f = memoize(f, 'f')
     node = Node(problem.initial)
@@ -371,12 +373,14 @@ def best_first_graph_search_for_vis(problem, f):
     node_colors[node.state] = "red"
     iterations += 1
     all_node_colors.append(dict(node_colors))
+    all_node_f.append(dict(node_f))
 
     if problem.goal_test(node.state):
         node_colors[node.state] = "green"
         iterations += 1
         all_node_colors.append(dict(node_colors))
-        return(iterations, all_node_colors, node)
+        all_node_f.append(dict(node_f))
+        return(iterations, all_node_colors, node, all_node_f)
 
     frontier = PriorityQueue('min', f)
     frontier.append(node)
@@ -384,6 +388,7 @@ def best_first_graph_search_for_vis(problem, f):
     node_colors[node.state] = "orange"
     iterations += 1
     all_node_colors.append(dict(node_colors))
+    all_node_f.append(dict(node_f))
 
     explored = set()
     while frontier:
@@ -392,12 +397,15 @@ def best_first_graph_search_for_vis(problem, f):
         node_colors[node.state] = "red"
         iterations += 1
         all_node_colors.append(dict(node_colors))
+        node_f[node.state] = node.path_cost
+        all_node_f.append(dict(node_f))
 
         if problem.goal_test(node.state):
             node_colors[node.state] = "green"
             iterations += 1
             all_node_colors.append(dict(node_colors))
-            return(iterations, all_node_colors, node)
+            all_node_f.append(dict(node_f))
+            return(iterations, all_node_colors, node, all_node_f)
 
         explored.add(node.state)
         for child in node.expand(problem):
@@ -406,6 +414,8 @@ def best_first_graph_search_for_vis(problem, f):
                 node_colors[child.state] = "orange"
                 iterations += 1
                 all_node_colors.append(dict(node_colors))
+                node_f[child.state] = child.path_cost
+                all_node_f.append(dict(node_f))
             elif child in frontier:
                 incumbent = frontier[child]
                 if f(child) < incumbent:
@@ -414,9 +424,13 @@ def best_first_graph_search_for_vis(problem, f):
                     node_colors[child.state] = "orange"
                     iterations += 1
                     all_node_colors.append(dict(node_colors))
+                    node_f[child.state] = child.path_cost
+                    all_node_f.append(dict(node_f))
 
         node_colors[node.state] = "gray"
         iterations += 1
+        node_f[node.state] = node.path_cost
+        all_node_f.append(dict(node_f))
         all_node_colors.append(dict(node_colors))
     return None
 
@@ -424,9 +438,9 @@ def best_first_graph_search_for_vis(problem, f):
 def uniform_cost_search_graph(problem):
     "[Figure 3.14]"
     # Uniform Cost Search uses Best First Search algorithm with f(n) = g(n)
-    iterations, all_node_colors, node = best_first_graph_search_for_vis(
+    iterations, all_node_colors, node, all_node_f = best_first_graph_search_for_vis(
         problem, lambda node: node.path_cost)
-    return(iterations, all_node_colors, node)
+    return(iterations, all_node_colors, node, all_node_f)
 
 
 def greedy_best_first_search(problem, h=None):
@@ -434,9 +448,9 @@ def greedy_best_first_search(problem, h=None):
     You need to specify the h function when you call best_first_search, or
     else in your Problem subclass."""
     h = memoize(h or problem.h, 'h')
-    iterations, all_node_colors, node = best_first_graph_search_for_vis(
+    iterations, all_node_colors, node, all_node_f = best_first_graph_search_for_vis(
         problem, lambda n: h(n))
-    return(iterations, all_node_colors, node)
+    return(iterations, all_node_colors, node, all_node_f)
 
 
 def astar_search_graph(problem, h=None):
@@ -444,9 +458,9 @@ def astar_search_graph(problem, h=None):
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""
     h = memoize(h or problem.h, 'h')
-    iterations, all_node_colors, node = best_first_graph_search_for_vis(problem,
-                                                                        lambda n: n.path_cost + h(n))
-    return(iterations, all_node_colors, node)
+    iterations, all_node_colors, node, all_node_f = best_first_graph_search_for_vis(problem,
+                                                                                    lambda n: n.path_cost + h(n))
+    return(iterations, all_node_colors, node, all_node_f)
 
 
 def memoize(fn, slot=None, maxsize=32):
