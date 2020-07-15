@@ -72,7 +72,7 @@ class GraphSearchProblem:
     def actions(self, A):
         return list(self.graph.get(A).keys())
 
-    def result(self,state, action):
+    def result(self, state, action):
         return action
 
     def goal_test(self, state):
@@ -98,14 +98,15 @@ class GraphSearchProblem:
 
     def h(self, node):
         """h function is straight-line distance from a node's state to goal."""
-        locs = getattr(self.graph, 'locations', None)
-        if locs:
-            if type(node) is str:
-                return int(distance(locs[node], locs[self.goal]))
+        # locs = getattr(self.graph, 'locations', None)
+        # if locs:
+        #     if type(node) is str:
+        #         return int(distance(locs[node], locs[self.goal]))
 
-            return int(distance(locs[node.state], locs[self.goal]))
-        else:
-            return np.inf
+        #     return int(distance(locs[node.state], locs[self.goal]))
+        # else:
+        #     return np.inf
+        return self.graph.h[node]
 
 
 class Node:
@@ -471,6 +472,7 @@ def memoize(fn, slot=None, maxsize=32):
 def receive(req, alg):
     g = Graph(req['graphs'])
     g.locations = req['locations']
+    g.h = req['heuristics']
     problem = GraphSearchProblem(
         req['start'], req['end'], g)
     g_search = {"astar": astar_search_graph, "greedy": greedy_best_first_search,
