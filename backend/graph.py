@@ -106,7 +106,7 @@ class GraphSearchProblem:
         #     return int(distance(locs[node.state], locs[self.goal]))
         # else:
         #     return np.inf
-        return self.graph.h[node]
+        return self.graph.h[node.state]
 
 
 class Node:
@@ -371,6 +371,7 @@ def best_first_graph_search_for_vis(problem, f):
     node = Node(problem.initial)
 
     node_colors[node.state] = "red"
+    node_f[node.state] = f(node)
     iterations += 1
     all_node_colors.append(dict(node_colors))
     all_node_f.append(dict(node_f))
@@ -397,7 +398,7 @@ def best_first_graph_search_for_vis(problem, f):
         node_colors[node.state] = "red"
         iterations += 1
         all_node_colors.append(dict(node_colors))
-        node_f[node.state] = node.path_cost
+        node_f[node.state] = f(node)
         all_node_f.append(dict(node_f))
 
         if problem.goal_test(node.state):
@@ -414,7 +415,7 @@ def best_first_graph_search_for_vis(problem, f):
                 node_colors[child.state] = "orange"
                 iterations += 1
                 all_node_colors.append(dict(node_colors))
-                node_f[child.state] = child.path_cost
+                node_f[child.state] = f(child)
                 all_node_f.append(dict(node_f))
             elif child in frontier:
                 incumbent = frontier[child]
@@ -429,7 +430,7 @@ def best_first_graph_search_for_vis(problem, f):
 
         node_colors[node.state] = "gray"
         iterations += 1
-        node_f[node.state] = node.path_cost
+        node_f[node.state] = f(node)
         all_node_f.append(dict(node_f))
         all_node_colors.append(dict(node_colors))
     return None
@@ -439,7 +440,7 @@ def uniform_cost_search_graph(problem):
     "[Figure 3.14]"
     # Uniform Cost Search uses Best First Search algorithm with f(n) = g(n)
     iterations, all_node_colors, node, all_node_f = best_first_graph_search_for_vis(
-        problem, lambda node: node.path_cost)
+        problem, lambda node: f(node))
     return(iterations, all_node_colors, node, all_node_f)
 
 
@@ -487,8 +488,10 @@ def receive(req, alg):
     g = Graph(req['graphs'])
     g.locations = req['locations']
     g.h = req['heuristics']
+
     problem = GraphSearchProblem(
         req['start'], req['end'], g)
     g_search = {"astar": astar_search_graph, "greedy": greedy_best_first_search,
                 "ucs": uniform_cost_search_graph, "bfs": breadth_first_search_graph, "dfs": depth_first_graph_search}
+
     return g_search[alg](problem)
