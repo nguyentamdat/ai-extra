@@ -347,7 +347,7 @@ def graph_search_for_vis(problem):
 
 def depth_first_graph_search(problem):
     """Search the deepest nodes in the search tree first."""
-    iterations, all_node_colors, node = graph_search_for_vis(problem)
+    iterations, all_node_colors, node, _ = graph_search_for_vis(problem)
     return(iterations, all_node_colors, node, None)
 
 
@@ -440,7 +440,7 @@ def uniform_cost_search_graph(problem):
     "[Figure 3.14]"
     # Uniform Cost Search uses Best First Search algorithm with f(n) = g(n)
     iterations, all_node_colors, node, all_node_f = best_first_graph_search_for_vis(
-        problem, lambda node: f(node))
+        problem, lambda node: node.path_cost)
     return(iterations, all_node_colors, node, all_node_f)
 
 
